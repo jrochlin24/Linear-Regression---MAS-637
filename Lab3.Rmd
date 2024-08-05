@@ -1,0 +1,103 @@
+---
+title: "Lab 3"
+output: pdf_document
+---
+
+## Problem 1: Stepwise Regression
+
+Load in the data:
+
+```{r}
+beer = read.csv("beer.csv")
+```
+
+Using the dataset `beer.csv`, build a model to predict beer consumption. (Hint: don't use Date as a predictor)
+
+a. Build the model using backward elimination and produce a summary. 
+
+```{r results = "hide"}
+full = lm(Consumption ~ . -Date, data = beer)
+BE = step(full)
+```
+
+```{r}
+summary(BE)
+```
+
+b. Build the model using forward selection and produce a summary. 
+
+```{r results="hide"}
+null = lm(Consumption ~ 1, data = beer)
+FS = step(null, scope = list(upper=full), direction = "forward")
+```
+
+```{r}
+summary(FS)
+```
+
+c. Build the model using stepwise and produce a summary. 
+
+```{r results="hide"}
+SW = step(null, scope = list(upper = full), direction = "both")
+```
+
+```{r}
+summary(SW)
+```
+
+d. Are the models the same?  If not, which one is different? 
+
+*Yes, all of the models are the same. TempMax, Weekend, and Precip are used in the models.*
+
+e. How well does the backward elimination model fit the data? 
+
+*72.26% of the variation in Consumption is explained.*
+
+
+f. Construct a residual plot and a histogram of the residuals of the backward elimination model and discuss if the linear regression model assumptions are met.
+
+```{r}
+par(mfrow=c(1, 2))
+plot(BE, which = 1)
+hist(BE$residuals, main = "", xlab = "Residuals")
+```
+
+*Linearity - Linearity assumption is mostly satisfied as the trend in the scatterplot is a line centered around 0.*
+*Independence -  No clear violation of independence.*
+*Normality - The residuals show a distribution that is approximately bell-shaped in the histogram.*
+*Error variance - There appears to be constant variance centered around 0 in the residual plot, so the constant variance assumption is met.*
+
+## Problem 2: Best Subsets
+
+Using the dataset `beer.csv`, build a model to predict beer consumption. (Hint: don't use Date as a predictor)
+
+a. Fit a best subsets model to predict consumption from all  predictors.
+
+```{r}
+library(leaps)
+BSR = regsubsets(Consumption ~ . -Date, data=beer)
+```
+
+b. Use the plot function on the best subsets object from part a.
+
+```{r}
+plot(BSR)
+```
+
+c. Which variables are in the best subset?
+
+*TempMax, Weekend, and Precip.*
+
+d. Plot the best subsets object again, but include the option: scale='adjr2'.
+
+```{r}
+plot(BSR, scale = "adjr2")
+```
+
+e. Which variables are in the best subset using adjusted R squared?
+
+*TempMax, Weekend, and Precip.*
+
+## Problem 3: Markdown
+
+Now you will modify your document so that it is in pristine format. Knit the document as a pdf and inspect it for neatness.

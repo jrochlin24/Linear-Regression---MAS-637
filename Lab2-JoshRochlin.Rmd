@@ -1,0 +1,146 @@
+---
+title: "Lab 2"
+author: "Josh Rochlin"
+date: "2-7-24"
+output: pdf_document
+---
+
+## Directions: Workout the problems using R markdown.  Hand in both the \*.rmd file and the knitted \*.pdf file. (2 points for correctly submitting)
+
+#### 1. Job Changes Data with Dummy Variables (3 points each part)
+
+Using the `JobChanges.csv` file, answer the following questions.
+
+  a. Fit a simple linear regression model to predict the annual salary in thousands of USD (`Salary`) as a function of the number of job changes (`Jobs`).  Print a summary of the model.
+  
+```{r}
+library(readr)
+df <- read_csv("JobChanges.csv")
+reg = lm(Salary ~ Jobs, data = df)
+summary(reg)
+```
+$$Y= 51.124 + 5.727 X_i+ \varepsilon$$
+  b. What percent of the variation in `Salary` can be explained by the model in the previous part? 
+
+*24.38% of the variation in 'Salary' can be explained by the variation in the number of job changes.*
+
+ c. Create a barplot of the 3 education levels in the `Education` variable by passing a `summary` of the Education factor into the `barplot` function.  
+
+```{r}
+df$Education <- factor(df$Education, levels = c("HS", "Bachelors", "Masters"))
+summary(df$Education)
+barplot(summary(df$Education), main="Education Levels", xlab="Education", ylab="Count", legend=rownames(df$Education))
+```
+
+  d. Fit a multiple regression model to predict the `Salary` using `Jobs` and 2 dummy variables representing education levels as predictor variables.  Print a summary of the model.
+
+```{r}
+reg1 = lm(Salary ~ Jobs + df$Education, data=df)
+summary(reg1)
+```
+
+  e. Create a scatterplot of `Jobs` versus `Salary`.  Overlay the scatterplot with the regression line for the `HS` level as given in the previous model.  Also, overlay the scatterplot with the regression lines for the other 2 levels as given by the previous model.
+
+```{r}
+colors <- ifelse(df$Education == "HS", "navyblue", ifelse(df$Education=="Bachelors", "maroon", "Green"))
+plot(df$Jobs, df$Salary, xlab="Jobs", ylab="Salary in Thousands of USD", main="Jobs vs. Salary", col = colors)
+abline(a = 31.115, b = 6.1788, col = "navyblue", lwd = 2)
+abline(a = 42.6047, b = 6.1788, col = "maroon", lwd = 2)
+abline(a = 76.2163, b = 6.1788, col = "Green", lwd = 2)
+legend("topleft", legend = c("HS","Bachelors", "Masters"), fill = c("navyblue", "maroon", "Green"))
+```
+
+  f. How should the dummy variables be interpreted?
+  
+*An individual with a Bachelors degree will make $11,489.6 in salary than an individual with a high school degree. An individual with a Masters degree will make $45,101.2 more in salary than an individual with a high school degree.*
+
+#### 2. Job Changes Data with Interactions (3 points each part)
+
+Using the `JobChanges.csv` file, answer the following questions.
+
+ a. Fit a multiple regression model on the data set predicting `Salary` as a function of `Jobs` and `Education`.  Include an interaction between the predictor variables. Print a summary of the model.
+
+```{r}
+reg = lm(Salary ~ Jobs + df$Education + Jobs:df$Education + Jobs:df$Education, data=df)
+summary(reg)
+```
+
+  b. Interpret the interaction coefficients from the previous model.
+
+*For every job change, there is an additional $1,200.1 increase in salary for individuals with a Bachelors as compared to individuals with only a high school degree. For every job change, there is an additional $7,337 increase in salary for individuals with a Masters degree as compared to individuals with only a high school degree.*
+
+  c. Create a scatterplot of `Jobs` versus `Salary`.  Overlay the scatterplot with the regression line for the `HS` level as given in the previous model.  Also, overlay the scatterplot with the regression lines for the remaining levels as given by the previous model.
+
+```{r}
+colors <- ifelse(df$Education == "HS", "navyblue", ifelse(df$Education=="Bachelors", "maroon", "Green"))
+plot(df$Jobs, df$Salary, xlab="Jobs", ylab="Salary in Thousands of USD", main="Jobs vs. Salary", col = colors)
+abline(a = 50.0405, b = 3.7932, col = "navyblue", lwd = 2)
+abline(a = 50.7179, b = 4.9933, col = "maroon", lwd = 2)
+abline(a = 41.3202, b = 11.1302, col = "Green", lwd = 2)
+legend("topleft", legend = c("HS", "Bachelors", "Masters"), fill = c("navyblue", "maroon", "Green"))
+```
+
+ d. Using the multiple regression model with the interaction from part a, specify the simple linear regression equation that predicts `Salary` using `Jobs` as a predictor for high school graduates (`HS`).  Also, specify the same simple linear regressions for college graduates (`bachelors`) and people with a graduate degree (`masters`).
+
+*HS*:
+$$\hat{y}= 50.0405 + 3.7932x$$
+*Bachelors*:
+$$\hat{y}=  (50.0405 + 0.6774) + (3.7932 + 1.2001)x$$
+$$\hat{y}=  50.7179 + 4.9933x$$
+*Masters*:
+$$\hat{y}= (50.0405 -8.7203) + (3.7932 + 7.337)x$$
+$$\hat{y}=  41.3202 + 11.1302x$$
+
+
+ e. Create and add a variable called `JobsM` which mean-centers the Jobs variable.
+
+```{r}
+df$JobsM = df$Jobs - mean(df$Jobs)
+summary(df$JobsM)
+```
+
+ f. Fit a multiple regression model which uses the following predictors:
+ * a dummy variable for observations at the `bachelors` level, 
+ * a dummy variable for observations at the `masters` level, 
+ * the mean-centered Jobs, and
+ * interactions between each dummy variable and the mean-centered Jobs.
+ 
+```{r}
+reg = lm(Salary ~ df$Education + df$Education + df$JobsM + df$Education:df$JobsM + df$Education:df$JobsM , data=df)
+summary(reg)
+```
+
+
+
+## 3. Carseat Sales with Categorical Variables (3 points each part)
+
+Here we will use the car seats data to solve the questions below.  From the `ISLR` package, load in the `Carseats` data by running the code chunk below.
+
+```{r}
+library(ISLR)
+data(Carseats)
+```
+
+  a. Get a summary of the data using the `summary` function. 
+
+```{r}
+summary(Carseats)
+```
+
+  b. List the variables that are numeric and the variables that are categorical.
+
+*Numeric: Sales, CompPrice, Income, Advertising, Population, Price, Age, Education*
+
+*Categorical: ShelveLoc, Urban, US*
+
+  c. Generate a linear model to predict the response variable (`Sales`) from all of the other variables in the data set.
+
+```{r}
+reg = lm(Sales ~ CompPrice + Income + Advertising + Population + Price + ShelveLoc + Age + Education + Urban + US, data = Carseats)
+```
+
+  d. Display a summary of the model given from the previous part.
+
+```{r}
+summary(reg)
+```
